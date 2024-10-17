@@ -1,3 +1,7 @@
+# Provide the complete code and generate the final CSV
+
+# Complete code:
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
@@ -21,26 +25,26 @@ def fit_linear_segment(years, values):
     model.fit(X, y)
     return model.predict(X)
 
-# Splitting data for each income group based on the requested segments
-# Segment 1: 1376 to 1390
-years_1 = df['year'][df['year'] <= 1390]
-low_income_1 = df['low_income'][df['year'] <= 1390]
-middle_income_1 = df['middle_income'][df['year'] <= 1390]
-high_income_1 = df['high_income'][df['year'] <= 1390]
+# Define the segments
+# Segment 1: 1376 to 1389
+years_1 = df['year'][df['year'] <= 1389]
+low_income_1 = df['low_income'][df['year'] <= 1389]
+middle_income_1 = df['middle_income'][df['year'] <= 1389]
+high_income_1 = df['high_income'][df['year'] <= 1389]
 
-# Segment 2: 1390 to 1395
-years_2 = df['year'][(df['year'] > 1390) & (df['year'] <= 1395)]
-low_income_2 = df['low_income'][(df['year'] > 1390) & (df['year'] <= 1395)]
-middle_income_2 = df['middle_income'][(df['year'] > 1390) & (df['year'] <= 1395)]
-high_income_2 = df['high_income'][(df['year'] > 1390) & (df['year'] <= 1395)]
+# Segment 2: 1389 to 1395
+years_2 = df['year'][(df['year'] > 1389) & (df['year'] <= 1395)]
+low_income_2 = df['low_income'][(df['year'] > 1389) & (df['year'] <= 1395)]
+middle_income_2 = df['middle_income'][(df['year'] > 1389) & (df['year'] <= 1395)]
+high_income_2 = df['high_income'][(df['year'] > 1389) & (df['year'] <= 1395)]
 
-# Segment 3: 1395 to the end
+# Segment 3: 1395 onwards
 years_3 = df['year'][df['year'] > 1395]
 low_income_3 = df['low_income'][df['year'] > 1395]
 middle_income_3 = df['middle_income'][df['year'] > 1395]
 high_income_3 = df['high_income'][df['year'] > 1395]
 
-# Fit linear models and predict
+# Fit the three segments
 low_income_pred_1 = fit_linear_segment(years_1, low_income_1)
 low_income_pred_2 = fit_linear_segment(years_2, low_income_2)
 low_income_pred_3 = fit_linear_segment(years_3, low_income_3)
@@ -53,55 +57,27 @@ high_income_pred_1 = fit_linear_segment(years_1, high_income_1)
 high_income_pred_2 = fit_linear_segment(years_2, high_income_2)
 high_income_pred_3 = fit_linear_segment(years_3, high_income_3)
 
-# Plot the original data and fitted linear segments again with more accurate vertical lines
-plt.figure(figsize=(12, 8))
+# Combine all predictions and segments
+low_income_fit_combined_all = np.concatenate([low_income_pred_1, low_income_pred_2, low_income_pred_3])
+middle_income_fit_combined_all = np.concatenate([middle_income_pred_1, middle_income_pred_2, middle_income_pred_3])
+high_income_fit_combined_all = np.concatenate([high_income_pred_1, high_income_pred_2, high_income_pred_3])
 
-# Low income
-plt.scatter(df['year'], df['low_income'], label='Low Income Data', color='blue')
-plt.plot(years_1, low_income_pred_1, label='Low Income Linear Fit (1376-1390)', linestyle='--', color='blue')
-plt.plot(years_2, low_income_pred_2, label='Low Income Linear Fit (1390-1395)', linestyle='--', color='lightblue')
-plt.plot(years_3, low_income_pred_3, label='Low Income Linear Fit (1395-End)', linestyle='--', color='darkblue')
+# Now create the DataFrame with the fitted years
+years_fitted_all = np.concatenate([years_1, years_2, years_3])
 
-# Middle income
-plt.scatter(df['year'], df['middle_income'], label='Middle Income Data', color='green')
-plt.plot(years_1, middle_income_pred_1, label='Middle Income Linear Fit (1376-1390)', linestyle='--', color='green')
-plt.plot(years_2, middle_income_pred_2, label='Middle Income Linear Fit (1390-1395)', linestyle='--', color='lightgreen')
-plt.plot(years_3, middle_income_pred_3, label='Middle Income Linear Fit (1395-End)', linestyle='--', color='darkgreen')
+# Creating the final DataFrame with the added segment
+df_fits_full = pd.DataFrame({
+    'year': years_fitted_all,
+    'low_income': np.concatenate([low_income_1, low_income_2, low_income_3]),
+    'middle_income': np.concatenate([middle_income_1, middle_income_2, middle_income_3]),
+    'high_income': np.concatenate([high_income_1, high_income_2, high_income_3]),
+    'low_income_fit': low_income_fit_combined_all,
+    'middle_income_fit': middle_income_fit_combined_all,
+    'high_income_fit': high_income_fit_combined_all
+})
 
-# High income
-plt.scatter(df['year'], df['high_income'], label='High Income Data', color='red')
-plt.plot(years_1, high_income_pred_1, label='High Income Linear Fit (1376-1390)', linestyle='--', color='red')
-plt.plot(years_2, high_income_pred_2, label='High Income Linear Fit (1390-1395)', linestyle='--', color='lightcoral')
-plt.plot(years_3, high_income_pred_3, label='High Income Linear Fit (1395-End)', linestyle='--', color='darkred')
+# Save the DataFrame as a CSV file
+csv_path_full_final = '/mnt/data/income_group_fits_three_segments_final.csv'
+df_fits_full.to_csv(csv_path_full_final, index=False)
 
-# Adding more accurate vertical lines for sanctions, adjusted for one year earlier
-plt.axvline(x=1389 + 8/12, color='gray', linestyle=':', label='Sanctions (Dey 1390)')
-plt.axvline(x=1396 + 2/12, color='black', linestyle=':', label='Sanctions (Ordibehesht 1397)')
-
-plt.text(1389 + 8/12, 0.6, 'Dey 1390 Sanctions', rotation=90, verticalalignment='bottom', horizontalalignment='right', color='gray')
-plt.text(1396 + 2/12, 0.6, 'Ordibehesht 1397 Sanctions', rotation=90, verticalalignment='bottom', horizontalalignment='right', color='black')
-
-# Adding labels and title
-plt.xlabel('Year')
-plt.ylabel('Income Group Proportion')
-plt.title('Income Group Trends with Linear Fits and Sanction Annotations')
-
-# Move the legend outside
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-
-plt.grid(True)
-plt.xticks(rotation=45)
-plt.tight_layout()
-
-# Show the plot
-plt.show()
-
-# Create a DataFrame with the original data and the linear fits
-df_fits = pd.DataFrame({
-    'year': df['year'],
-    'low_income': df['low_income'],
-    'middle_income': df['middle_income'],
-    'high_income': df['high_income'],
-    'low_income_fit': np.concatenate([low_income_pred_1, low_income_pred_2, low_income_pred_3]),
-    'middle_income_fit': np.concatenate([middle_income_pred_1, middle_income_pred_2, middle_income_pred_3]),
-    'high_income_fit': np.concatenate &#8203;:contentReference[oaicite:0]{index=0}&#8203;
+csv_path_full_fina
